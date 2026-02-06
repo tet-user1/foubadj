@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class ProduitController extends Controller
 {
@@ -93,7 +94,7 @@ class ProduitController extends Controller
     }
 
     /**
-     * Enregistrer un nouveau produit avec gestion d'erreurs améliorée
+     * Enregistrer un nouveau produit avec Cloudinary
      */
     public function store(Request $request)
     {
@@ -103,11 +104,12 @@ class ProduitController extends Controller
             'description' => 'required|string|max:2000|min:10',
             'prix' => 'required|numeric|min:0|max:999999999',
             'quantite' => 'required|integer|min:0|max:999999',
+            'categorie' => 'required|string|max:255',
             'image' => [
                 'nullable',
                 File::image()
-                    ->max(5 * 1024) // 5MB max (augmenté)
-                    ->types(['jpeg', 'jpg', 'png', 'webp', 'svg'])
+                    ->max(5 * 1024) // 5MB max
+                    ->types(['jpeg', 'jpg', 'png', 'webp', 'gif'])
             ]
         ], [
             'nom.required' => 'Le nom du produit est obligatoire',
@@ -124,17 +126,29 @@ class ProduitController extends Controller
             'quantite.integer' => 'La quantité doit être un nombre entier',
             'quantite.min' => 'La quantité ne peut pas être négative',
             'quantite.max' => 'La quantité est trop élevée',
+            'categorie.required' => 'La catégorie est obligatoire',
             'image.image' => 'Le fichier doit être une image valide',
             'image.max' => 'L\'image ne peut pas dépasser 5MB',
-            'image.mimes' => 'L\'image doit être au format JPG, PNG, WebP ou SVG'
+            'image.mimes' => 'L\'image doit être au format JPG, PNG, WebP ou GIF'
         ]);
 
         try {
-            // Gérer l'upload de l'image si présente
-            $imageName = null;
+            // Upload de l'image vers Cloudinary si présente
             if ($request->hasFile('image')) {
-                $imageName = $this->handleImageUpload($request->file('image'));
-                $validated['image'] = $imageName;
+                $uploadedFileUrl = Cloudinary::upload(
+                    $request->file('image')->getRealPath(),
+                    [
+                        'folder' => 'foubadj/produits',
+                        'transformation' => [
+                            'width' => 800,
+                            'height' => 800,
+                            'crop' => 'limit',
+                            'quality' => 'auto'
+                        ]
+                    ]
+                )->getSecurePath();
+                
+                $validated['image'] = $uploadedFileUrl;
             }
 
             // Ajouter l'ID de l'utilisateur et slug
@@ -157,11 +171,6 @@ class ProduitController extends Controller
                 ->with('refresh_stats', true);
 
         } catch (\Exception $e) {
-            // Nettoyer l'image uploadée en cas d'erreur
-            if (isset($imageName) && $imageName) {
-                $this->deleteImage($imageName);
-            }
-
             \Log::error('Erreur création produit', [
                 'error' => $e->getMessage(),
                 'user_id' => Auth::id()
@@ -170,7 +179,7 @@ class ProduitController extends Controller
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'Erreur lors de la création du produit. Veuillez réessayer.');
+                ->with('error', 'Erreur lors de la création du produit : ' . $e->getMessage());
         }
     }
 
@@ -201,7 +210,7 @@ class ProduitController extends Controller
     }
 
     /**
-     * Mettre à jour un produit avec gestion améliorée
+     * Mettre à jour un produit avec Cloudinary
      */
     public function update(Request $request, Produit $produit)
     {
@@ -216,25 +225,38 @@ class ProduitController extends Controller
             'description' => 'required|string|max:2000|min:10',
             'prix' => 'required|numeric|min:0|max:999999999',
             'quantite' => 'required|integer|min:0|max:999999',
+            'categorie' => 'required|string|max:255',
             'image' => [
                 'nullable',
                 File::image()
                     ->max(5 * 1024) // 5MB max
-                    ->types(['jpeg', 'jpg', 'png', 'webp', 'svg'])
+                    ->types(['jpeg', 'jpg', 'png', 'webp', 'gif'])
             ]
         ]);
 
         try {
-            $oldImageName = $produit->image;
+            $oldImageUrl = $produit->image;
 
-            // Gérer l'upload de la nouvelle image si présente
+            // Upload de la nouvelle image vers Cloudinary si présente
             if ($request->hasFile('image')) {
-                $imageName = $this->handleImageUpload($request->file('image'));
-                $validated['image'] = $imageName;
+                $uploadedFileUrl = Cloudinary::upload(
+                    $request->file('image')->getRealPath(),
+                    [
+                        'folder' => 'foubadj/produits',
+                        'transformation' => [
+                            'width' => 800,
+                            'height' => 800,
+                            'crop' => 'limit',
+                            'quality' => 'auto'
+                        ]
+                    ]
+                )->getSecurePath();
                 
-                // Supprimer l'ancienne image après succès
-                if ($oldImageName) {
-                    $this->deleteImage($oldImageName);
+                $validated['image'] = $uploadedFileUrl;
+                
+                // Supprimer l'ancienne image de Cloudinary
+                if ($oldImageUrl && str_starts_with($oldImageUrl, 'http')) {
+                    $this->deleteCloudinaryImage($oldImageUrl);
                 }
             }
 
@@ -268,12 +290,12 @@ class ProduitController extends Controller
             return redirect()
                 ->back()
                 ->withInput()
-                ->with('error', 'Erreur lors de la mise à jour. Veuillez réessayer.');
+                ->with('error', 'Erreur lors de la mise à jour : ' . $e->getMessage());
         }
     }
 
     /**
-     * Supprimer un produit avec vérifications
+     * Supprimer un produit avec suppression Cloudinary
      */
     public function destroy(Produit $produit)
     {
@@ -284,21 +306,14 @@ class ProduitController extends Controller
 
         try {
             $nomProduit = $produit->nom;
-            $imageName = $produit->image;
-            
-            // Vérifier s'il y a des commandes liées (optionnel)
-            // if ($produit->commandes()->exists()) {
-            //     return redirect()
-            //         ->back()
-            //         ->with('error', 'Impossible de supprimer ce produit car il a des commandes associées.');
-            // }
+            $imageUrl = $produit->image;
             
             // Supprimer le produit
             $produit->delete();
             
-            // Supprimer l'image après suppression réussie
-            if ($imageName) {
-                $this->deleteImage($imageName);
+            // Supprimer l'image de Cloudinary
+            if ($imageUrl && str_starts_with($imageUrl, 'http')) {
+                $this->deleteCloudinaryImage($imageUrl);
             }
 
             // Log de l'activité
@@ -321,7 +336,28 @@ class ProduitController extends Controller
 
             return redirect()
                 ->back()
-                ->with('error', 'Erreur lors de la suppression. Veuillez réessayer.');
+                ->with('error', 'Erreur lors de la suppression : ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Méthode privée pour supprimer une image de Cloudinary
+     */
+    private function deleteCloudinaryImage($imageUrl)
+    {
+        try {
+            // Extraire le public_id de l'URL Cloudinary
+            // Format: https://res.cloudinary.com/cloud-name/image/upload/v123456/foubadj/produits/abc123.jpg
+            preg_match('/\/foubadj\/produits\/([^\.]+)/', $imageUrl, $matches);
+            
+            if (isset($matches[1])) {
+                $publicId = 'foubadj/produits/' . $matches[1];
+                Cloudinary::destroy($publicId);
+                \Log::info('Image Cloudinary supprimée', ['public_id' => $publicId]);
+            }
+        } catch (\Exception $e) {
+            // Log l'erreur mais ne pas bloquer la suppression
+            \Log::error('Erreur suppression image Cloudinary: ' . $e->getMessage());
         }
     }
 
@@ -420,11 +456,8 @@ class ProduitController extends Controller
             $nouveauProduit->slug = Str::slug($nouveauProduit->nom) . '-' . time();
             $nouveauProduit->quantite = 0; // Nouveau produit sans stock
             
-            // Dupliquer l'image si elle existe
-            if ($produit->image) {
-                $nouvelleImage = $this->duplicateImage($produit->image);
-                $nouveauProduit->image = $nouvelleImage;
-            }
+            // Garder la même URL d'image (pas besoin de dupliquer sur Cloudinary)
+            $nouveauProduit->image = $produit->image;
             
             $nouveauProduit->save();
 
@@ -507,149 +540,6 @@ class ProduitController extends Controller
             'prix_moyen' => $produits->avg('prix') ?? 0,
             'stock_total' => $produits->sum('quantite')
         ];
-    }
-
-    /**
-     * Gérer l'upload d'image avec optimisation
-     */
-    private function handleImageUpload($image)
-    {
-        try {
-            // Créer le répertoire s'il n'existe pas
-            $destinationPath = public_path('images/produits/');
-            if (!file_exists($destinationPath)) {
-                mkdir($destinationPath, 0755, true);
-            }
-            
-            // Générer un nom unique
-            $extension = $image->getClientOriginalExtension();
-            $imageName = 'produit_' . Auth::id() . '_' . date('YmdHis') . '_' . uniqid() . '.' . $extension;
-            
-            // Déplacer l'image
-            $image->move($destinationPath, $imageName);
-            
-            // Optionnel : Redimensionner l'image pour optimiser l'espace
-            $this->optimizeImage($destinationPath . $imageName);
-            
-            return $imageName;
-            
-        } catch (\Exception $e) {
-            \Log::error('Erreur upload image', ['error' => $e->getMessage()]);
-            throw new \Exception('Erreur lors de l\'upload de l\'image');
-        }
-    }
-
-    /**
-     * Supprimer une image
-     */
-    private function deleteImage($imageName)
-    {
-        try {
-            if ($imageName) {
-                $imagePath = public_path('images/produits/' . $imageName);
-                if (file_exists($imagePath)) {
-                    unlink($imagePath);
-                }
-            }
-        } catch (\Exception $e) {
-            \Log::warning('Impossible de supprimer l\'image', [
-                'image' => $imageName,
-                'error' => $e->getMessage()
-            ]);
-        }
-    }
-
-    /**
-     * Dupliquer une image
-     */
-    private function duplicateImage($originalImageName)
-    {
-        try {
-            if (!$originalImageName) {
-                return null;
-            }
-
-            $originalPath = public_path('images/produits/' . $originalImageName);
-            if (!file_exists($originalPath)) {
-                return null;
-            }
-
-            $extension = pathinfo($originalImageName, PATHINFO_EXTENSION);
-            $newImageName = 'produit_' . Auth::id() . '_' . date('YmdHis') . '_' . uniqid() . '.' . $extension;
-            $newPath = public_path('images/produits/' . $newImageName);
-            
-            if (copy($originalPath, $newPath)) {
-                return $newImageName;
-            }
-            
-            return null;
-            
-        } catch (\Exception $e) {
-            \Log::warning('Erreur duplication image', ['error' => $e->getMessage()]);
-            return null;
-        }
-    }
-
-    /**
-     * Optimiser une image (redimensionnement basique)
-     */
-    private function optimizeImage($imagePath)
-    {
-        try {
-            // Vérifier si GD est disponible
-            if (!extension_loaded('gd')) {
-                return;
-            }
-
-            $imageInfo = getimagesize($imagePath);
-            if (!$imageInfo) {
-                return;
-            }
-
-            [$width, $height, $type] = $imageInfo;
-            
-            // Redimensionner seulement si l'image est trop grande
-            $maxWidth = 800;
-            $maxHeight = 600;
-            
-            if ($width > $maxWidth || $height > $maxHeight) {
-                $ratio = min($maxWidth / $width, $maxHeight / $height);
-                $newWidth = intval($width * $ratio);
-                $newHeight = intval($height * $ratio);
-                
-                $newImage = imagecreatetruecolor($newWidth, $newHeight);
-                
-                switch ($type) {
-                    case IMAGETYPE_JPEG:
-                        $source = imagecreatefromjpeg($imagePath);
-                        imagecopyresampled($newImage, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-                        imagejpeg($newImage, $imagePath, 85);
-                        break;
-                    case IMAGETYPE_PNG:
-                        $source = imagecreatefrompng($imagePath);
-                        imagealphablending($newImage, false);
-                        imagesavealpha($newImage, true);
-                        imagecopyresampled($newImage, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-                        imagepng($newImage, $imagePath, 8);
-                        break;
-                    case IMAGETYPE_WEBP:
-                        if (function_exists('imagecreatefromwebp')) {
-                            $source = imagecreatefromwebp($imagePath);
-                            imagecopyresampled($newImage, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
-                            imagewebp($newImage, $imagePath, 85);
-                        }
-                        break;
-                }
-                
-                if (isset($source)) {
-                    imagedestroy($source);
-                }
-                imagedestroy($newImage);
-            }
-            
-        } catch (\Exception $e) {
-            \Log::warning('Erreur optimisation image', ['error' => $e->getMessage()]);
-        }
     }
 
     /**
@@ -777,59 +667,50 @@ class ProduitController extends Controller
         return view('produits.dashboard', compact('stats', 'stockDistribution', 'evolutionStock'));
     }
 
+    /**
+     * Afficher la page "Mes Produits" (alias vers index)
+     */
+    public function myProducts(Request $request)
+    {
+        return $this->index($request);
+    }
 
-
-// À ajouter dans votre ProduitController
-
-/**
- * Afficher la page "Mes Produits" (alias vers index)
- */
-public function myProducts(Request $request)
-{
-    return $this->index($request);
-}
-
-/**
- * API pour récupérer les statistiques avancées 
- * (peut être utilisée depuis le dashboard aussi)
- */
-public function getAdvancedProductStats(Request $request)
-{
-    $userId = Auth::id();
-    $dateDebut = $request->get('date_debut', Carbon::now()->subDays(30)->toDateString());
-    $dateFin = $request->get('date_fin', Carbon::now()->toDateString());
-    
-    $produits = Produit::byUser($userId)->get();
-    
-    // Statistiques réelles basées sur vos produits
-    $stats = [
-        'total_produits' => $produits->count(),
-        'valeur_totale_stock' => $produits->sum(function($p) {
+    /**
+     * API pour récupérer les statistiques avancées 
+     */
+    public function getAdvancedProductStats(Request $request)
+    {
+        $userId = Auth::id();
+        
+        $produits = Produit::byUser($userId)->get();
+        
+        // Statistiques réelles basées sur vos produits
+        $stats = [
+            'total_produits' => $produits->count(),
+            'valeur_totale_stock' => $produits->sum(function($p) {
+                return $p->prix * $p->quantite;
+            }),
+            'produits_en_stock' => $produits->where('quantite', '>', 10)->count(),
+            'produits_stock_faible' => $produits->whereBetween('quantite', [1, 10])->count(),
+            'produits_rupture' => $produits->where('quantite', 0)->count(),
+            'prix_moyen' => $produits->avg('prix') ?? 0
+        ];
+        
+        // Top 5 produits par valeur de stock
+        $topProduitsParValeur = $produits->sortByDesc(function($p) {
             return $p->prix * $p->quantite;
-        }),
-        'produits_en_stock' => $produits->where('quantite', '>', 10)->count(),
-        'produits_stock_faible' => $produits->whereBetween('quantite', [1, 10])->count(),
-        'produits_rupture' => $produits->where('quantite', 0)->count(),
-        'prix_moyen' => $produits->avg('prix') ?? 0
-    ];
-    
-    // Top 5 produits par valeur de stock
-    $topProduitsParValeur = $produits->sortByDesc(function($p) {
-        return $p->prix * $p->quantite;
-    })->take(5);
-    
-    return response()->json([
-        'stats' => $stats,
-        'top_produits_valeur' => $topProduitsParValeur->map(function($p) {
-            return [
-                'nom' => $p->nom,
-                'valeur' => $p->prix * $p->quantite,
-                'quantite' => $p->quantite,
-                'prix' => $p->prix
-            ];
-        })->values()
-    ]);
-}
-
-
+        })->take(5);
+        
+        return response()->json([
+            'stats' => $stats,
+            'top_produits_valeur' => $topProduitsParValeur->map(function($p) {
+                return [
+                    'nom' => $p->nom,
+                    'valeur' => $p->prix * $p->quantite,
+                    'quantite' => $p->quantite,
+                    'prix' => $p->prix
+                ];
+            })->values()
+        ]);
+    }
 }
