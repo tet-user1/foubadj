@@ -54,6 +54,15 @@ class RegisteredUserController extends Controller
     Auth::login($user);
 
     // Rediriger vers le dashboard (ou la page d'accueil)
+    // Rediriger selon le rôle de l'utilisateur
+    if ($user->role === 'acheteur') {
+        return redirect()->route('dashboard.acheteur')->with('success', 'Inscription réussie ! Bienvenue sur Foubadj.');
+    } elseif ($user->role === 'producteur') {
+        return redirect()->route('dashboard.producteur')->with('success', 'Inscription réussie ! Bienvenue sur Foubadj.');
+    }
+
+    // Redirection par défaut (au cas où)
     return redirect('/dashboard')->with('success', 'Inscription réussie ! Bienvenue sur Foubadj.');
+
 }
 }
