@@ -1,0 +1,491 @@
+/* ============================================
+   FUBADJ CATALOGUE - STYLES CSS COMPLETS
+   Fichier: public/css/catalogue.css
+   ============================================ */
+
+/* Gradient d'arrière-plan principal */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #28a745, #20c997) !important;
+}
+
+/* ============================================
+   ANIMATIONS DES CARTES PRODUITS
+   ============================================ */
+
+.product-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    opacity: 0;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+
+.product-image {
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image {
+    transform: scale(1.05);
+}
+
+/* Overlay d'actions sur les produits */
+.product-overlay {
+    background: rgba(0,0,0,0.7);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.product-card:hover .product-overlay {
+    opacity: 1;
+}
+
+/* ============================================
+   UTILITAIRES ET HELPERS
+   ============================================ */
+
+.z-index-1 {
+    z-index: 1 !important;
+}
+
+.card-img-top {
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* ============================================
+   STYLES DU PANIER
+   ============================================ */
+
+.cart-item {
+    border-bottom: 1px solid #dee2e6;
+    padding: 15px 0;
+}
+
+.cart-item:last-child {
+    border-bottom: none;
+}
+
+.quantity-input {
+    max-width: 60px;
+}
+
+/* Badge du panier */
+#cartCount {
+    font-size: 0.75rem;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    line-height: 1.5rem;
+    text-align: center;
+}
+
+/* Modal du panier */
+.modal-lg {
+    max-width: 900px;
+}
+
+/* ============================================
+   BOUTONS ET INTERACTIONS
+   ============================================ */
+
+.btn {
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border: none;
+}
+
+.btn-success:hover {
+    background: linear-gradient(135deg, #218838, #1ea688);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0056b3, #004085);
+}
+
+/* Bouton en chargement */
+.btn-loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.btn-loading .fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(10px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.product-card.animate {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+/* Animation de pulsation */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse {
+    animation: pulse 0.5s ease-in-out;
+}
+
+/* ============================================
+   TOASTS ET NOTIFICATIONS
+   ============================================ */
+
+.toast {
+    transition: all 0.3s ease;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.toast .toast-body {
+    font-weight: 500;
+}
+
+/* Container pour les toasts */
+#toast-container {
+    z-index: 9999;
+}
+
+/* ============================================
+   AMÉLIORATION DES CARTES
+   ============================================ */
+
+.card {
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* Badge de statut */
+.badge {
+    font-size: 0.75em;
+    font-weight: 600;
+    border-radius: 0.375rem;
+}
+
+/* ============================================
+   TEXTE ET TYPOGRAPHIE
+   ============================================ */
+
+.text-success {
+    color: #28a745 !important;
+    font-weight: 700;
+}
+
+.display-4 {
+    font-weight: 800;
+}
+
+/* Styles pour les étoiles de rating */
+.rating-stars {
+    font-size: 1rem;
+}
+
+.rating-stars .fa-star.text-warning {
+    color: #ffc107 !important;
+}
+
+.rating-stars .fa-star.text-muted {
+    color: #dee2e6 !important;
+}
+
+/* ============================================
+   FORMULAIRES
+   ============================================ */
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+/* ============================================
+   MODAL
+   ============================================ */
+
+.modal-content {
+    border-radius: 0.5rem;
+    border: none;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    border-bottom: 1px solid #e9ecef;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.modal-footer {
+    border-top: 1px solid #e9ecef;
+    border-radius: 0 0 0.5rem 0.5rem;
+}
+
+/* ============================================
+   PAGINATION
+   ============================================ */
+
+.pagination .page-link {
+    border-radius: 0.375rem;
+    margin: 0 2px;
+    border: 1px solid #dee2e6;
+}
+
+.pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    border-color: #28a745;
+}
+
+/* ============================================
+   LOADING SPINNER
+   ============================================ */
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #28a745;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* ============================================
+   STATISTIQUES
+   ============================================ */
+
+.stats-card {
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-3px);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .product-card {
+        margin-bottom: 1rem;
+    }
+    
+    .cart-item .row > div {
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+    
+    .product-overlay {
+        opacity: 1;
+        background: rgba(0,0,0,0.5);
+    }
+    
+    .quantity-input {
+        max-width: 50px;
+    }
+    
+    /* Hero section responsive */
+    .hero-section .btn {
+        margin-top: 1rem;
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-section {
+        text-align: center;
+    }
+    
+    .stats-cards {
+        margin-bottom: 1rem;
+    }
+    
+    .filter-form .col-md-4,
+    .filter-form .col-md-3,
+    .filter-form .col-md-2 {
+        margin-bottom: 0.5rem;
+    }
+    
+    .modal-lg {
+        max-width: 95%;
+    }
+    
+    .cart-item .col-1,
+    .cart-item .col-2 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+/* ============================================
+   MODE SOMBRE (OPTIONNEL)
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+    .card {
+        background-color: #2d3748;
+        color: #e2e8f0;
+    }
+    
+    .text-muted {
+        color: #a0aec0 !important;
+    }
+    
+    .bg-light {
+        background-color: #4a5568 !important;
+    }
+    
+    .modal-content {
+        background-color: #2d3748;
+        color: #e2e8f0;
+    }
+}
+
+/* ============================================
+   AMÉLIORATIONS SUPPLÉMENTAIRES
+   ============================================ */
+
+/* Smooth scroll */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Focus visible pour l'accessibilité */
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible {
+    outline: 2px solid #28a745;
+    outline-offset: 2px;
+}
+
+/* Amélioration des transitions */
+* {
+    transition: all 0.3s ease;
+}
+
+/* Curseur pointeur pour les éléments interactifs */
+.product-card,
+.btn,
+.badge,
+.rating-stars .fa-star {
+    cursor: pointer;
+}
+
+/* Amélioration de la lisibilité */
+.small {
+    line-height: 1.4;
+}
+
+/* Espacements cohérents */
+.mb-custom {
+    margin-bottom: 1.5rem;
+}
+
+.mt-custom {
+    margin-top: 1.5rem;
+}
+
+/* ============================================
+   ÉTAT DE CHARGEMENT GLOBAL
+   ============================================ */
+
+.page-loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.page-loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #28a745;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* ============================================
+   CORRECTIONS FINALES
+   ============================================ */
+
+/* S'assurer que les images ne débordent pas */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Améliorer la visibilité des badges sur les images */
+.position-absolute.badge {
+    z-index: 2;
+    font-size: 0.7rem;
+    padding: 0.35em 0.65em;
+}
+
+/* Améliorer l'espacement des boutons dans les cartes */
+.card-body .btn {
+    margin: 0.25rem 0;
+}

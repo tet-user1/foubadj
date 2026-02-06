@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ----- STYLES CATALOGUE ----- */
+
+/* Cartes produits */
+.product-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e5e5e5;
+    background-color: #ffffff;
+}
+
+.product-card:hover {
+    border-color: #00BF63; /* Vert foncé */
+    box-shadow: 0 5px 15px rgba(0, 191, 99, 0.25);
+}
+
+.object-fit-cover {
+    object-fit: cover;
+}
+
+/* Texte */
+.prose {
+    line-height: 1.8;
+    color: #333333;
+}
+
+.prose p {
+    margin-bottom: 1rem;
+}
+
+/* ----- PAGINATION ----- */
+
+.pagination .page-link {
+    border-radius: 6px;
+    margin: 0 2px;
+    border: 1px solid #dcdcdc;
+    color: #00BF63;
+    background-color: #ffffff;
+}
+
+.pagination .page-link:hover {
+    background-color: #C1FF72; /* Vert clair */
+    color: #000000;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #00BF63;
+    border-color: #00BF63;
+    color: #ffffff;
+}
+
+/* ----- BADGES ----- */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    background-color: #7ED957; /* Vert moyen */
+    color: #000000;
+    border-radius: 4px;
+}
+
+/* ----- IMAGES RESPONSIVES ----- */
+.img-fluid {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ----- BOUTONS ----- */
+.btn {
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 191, 99, 0.25);
+}
+
+/* Bouton principal */
+.btn-primary {
+    background-color: #00BF63 !important;
+    border-color: #00BF63 !important;
+    color: #ffffff !important;
+}
+
+.btn-primary:hover {
+    background-color: #00994F !important; /* Vert foncé assombri */
+}
+
+/* Bouton secondaire : bordure verte */
+.btn-outline-primary {
+    background-color: #ffffff !important;
+    color: #00BF63 !important;
+    border: 1px solid #00BF63 !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: #00BF63 !important;
+    color: #ffffff !important;
+}
