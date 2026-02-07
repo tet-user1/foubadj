@@ -266,15 +266,20 @@ Route::get('/financement/{id}/imprimer', [FinancementController::class, 'imprime
 
 
 
-// Route temporaire pour créer le 2ème admin - À SUPPRIMER APRÈS UTILISATION
 Route::get('/create-admin-fubadj-marketplace', function () {
-    // Vérifier si l'admin existe déjà
-    $existingAdmin = App\Models\User::where('email', 'fubadjmarketplace@gmail.com')->first();
+    $admin = App\Models\User::where('email', 'fubadjmarketplace@gmail.com')->first();
     
-    if ($existingAdmin) {
-        return 'Un admin avec cet email existe déjà !';
+    if ($admin) {
+        // Mettre à jour le mot de passe
+        $admin->password = bcrypt('788549065PsB@');
+        $admin->telephone = '782146164';
+        $admin->role = 'admin';
+        $admin->save();
+        
+        return 'Mot de passe de l\'admin mis à jour avec succès ! Email: ' . $admin->email . ' - SUPPRIMEZ CETTE ROUTE !';
     }
     
+    // Créer s'il n'existe pas
     $admin = App\Models\User::create([
         'name' => 'Fubadj Marketplace',
         'email' => 'fubadjmarketplace@gmail.com',
@@ -285,5 +290,5 @@ Route::get('/create-admin-fubadj-marketplace', function () {
         'email_verified_at' => now(),
     ]);
     
-    return 'Admin Fubadj Marketplace créé avec succès ! Email: ' . $admin->email . ' - SUPPRIMEZ CETTE ROUTE MAINTENANT !';
+    return 'Admin créé avec succès ! Email: ' . $admin->email . ' - SUPPRIMEZ CETTE ROUTE !';
 });
