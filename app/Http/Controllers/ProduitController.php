@@ -171,16 +171,20 @@ class ProduitController extends Controller
                 ->with('refresh_stats', true);
 
         } catch (\Exception $e) {
-            \Log::error('Erreur création produit', [
-                'error' => $e->getMessage(),
-                'user_id' => Auth::id()
-            ]);
+    \Log::error('Erreur création produit', [
+        'error' => $e->getMessage(),
+        'trace' => $e->getTraceAsString(),
+        'user_id' => Auth::id()
+    ]);
 
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'Erreur lors de la création du produit : ' . $e->getMessage());
-        }
+    // AFFICHER L'ERREUR COMPLETE (temporaire pour debug)
+    dd([
+        'message' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
+        'trace' => $e->getTraceAsString()
+    ]);
+}
     }
 
     /**
