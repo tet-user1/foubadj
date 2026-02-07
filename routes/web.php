@@ -266,29 +266,4 @@ Route::get('/financement/{id}/imprimer', [FinancementController::class, 'imprime
 
 
 
-Route::get('/create-admin-fubadj-marketplace', function () {
-    $admin = App\Models\User::where('email', 'fubadjmarketplace@gmail.com')->first();
-    
-    if ($admin) {
-        // Mettre à jour le mot de passe
-        $admin->password = bcrypt('788549065PsB@');
-        $admin->telephone = '782146164';
-        $admin->role = 'admin';
-        $admin->save();
-        
-        return 'Mot de passe de l\'admin mis à jour avec succès ! Email: ' . $admin->email . ' - SUPPRIMEZ CETTE ROUTE !';
-    }
-    
-    // Créer s'il n'existe pas
-    $admin = App\Models\User::create([
-        'name' => 'Fubadj Marketplace',
-        'email' => 'fubadjmarketplace@gmail.com',
-        'password' => bcrypt('788549065PsB@'),
-        'role' => 'admin',
-        'telephone' => '782146164',
-        'adresse' => 'Dakar, Sénégal',
-        'email_verified_at' => now(),
-    ]);
-    
-    return 'Admin créé avec succès ! Email: ' . $admin->email . ' - SUPPRIMEZ CETTE ROUTE !';
-});
+
