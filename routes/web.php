@@ -264,3 +264,26 @@ Route::get('/financement/{id}/imprimer', [FinancementController::class, 'imprime
 });
 
 
+
+
+// Route temporaire pour créer un admin - À SUPPRIMER APRÈS UTILISATION
+Route::get('/create-admin-secret-route-12345', function () {
+    // Vérifier si l'admin existe déjà
+    $existingAdmin = App\Models\User::where('email', 'tetedieme350@gmail.com')->first();
+    
+    if ($existingAdmin) {
+        return 'Un admin avec cet email existe déjà !';
+    }
+    
+    $admin = App\Models\User::create([
+        'name' => 'Admin-tete',
+        'email' => 'tetedieme350@gmail.com',
+        'password' => bcrypt('1997&adama'),
+        'role' => 'admin',
+        'telephone' => '764733157',
+        'adresse' => 'Dakar, Sénégal',
+        'email_verified_at' => now(),
+    ]);
+    
+    return 'Admin créé avec succès ! Email: ' . $admin->email . ' - MOT DE PASSE SUPPRIMÉ POUR SÉCURITÉ - Supprimez maintenant cette route !';
+});
