@@ -178,7 +178,7 @@
                                         <div id="imagePlaceholder">
                                             <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
                                             <p class="text-muted mb-2">Cliquez pour ajouter une photo</p>
-                                            <small class="text-muted">JPG, PNG, WebP max 2MB</small>
+                                            <small class="text-muted">JPG, PNG, WebP max 5MB</small>
                                         </div>
                                     </div>
                                     
