@@ -40,15 +40,19 @@ class Produit extends Model
      * Accesseur pour obtenir l'URL complète de l'image
      */
     public function getImageUrlAttribute()
-    {
-        if ($this->image) {
-            $imagePath = public_path('images/produits/' . $this->image);
-            if (file_exists($imagePath)) {
-                return asset('images/produits/' . $this->image);
-            }
-        }
-        return null;
+{
+    // Si l'image existe et est une URL (Cloudinary)
+    if ($this->image && str_starts_with($this->image, 'http')) {
+        return $this->image;
     }
+    
+    // Sinon, chemin local
+    if ($this->image) {
+        return asset('images/produits/' . $this->image);
+    }
+    
+    return null;
+}
 
     /**
      * Méthode pour vérifier si le produit a une image
